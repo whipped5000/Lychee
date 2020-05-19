@@ -10,10 +10,31 @@ pool:
   vmImage: 'ubuntu-latest'
 
 parameters:
-  phpVersions: [ 7.3, 7.4 ]
-  sqls: [ 'mariadb', 'postgresql', 'sqlite' ]
-  exiftools: [ 'yes', 'no' ]
-  composer_devs: [ 'yes', 'no' ]
+- name: phpVersions
+  type: string
+  default: '7.4'
+  values:
+  - '7.3'
+  - '7.4'
+- name: sqls
+  type: string
+  default: 'mariadb'
+  values:
+  - 'mariadb'
+  - 'postgresql'
+  - 'sqlite'
+- name: exiftools
+  type: string
+  default: 'yes'
+  values:
+  - 'yes'
+  - 'no'
+- name: composer_devs
+  type: string
+  default: 'yes'
+  values:
+  - 'yes'
+  - 'no'
 
 jobs:
   - ${{ each phpVersion in parameters.phpVersions }}:
