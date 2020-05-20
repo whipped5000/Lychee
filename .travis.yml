@@ -12,7 +12,7 @@ php:
   - '7.3'
   - '7.4'
 #  - nightly
-env: 
+env:
   - SQL=mariadb EXIFTOOL=yes TRAVIS_COMPOSER_DEV=yes
   - SQL=mariadb EXIFTOOL=no TRAVIS_COMPOSER_DEV=yes
 
@@ -76,6 +76,12 @@ script:
 
 after_success:
   - bash codecov.sh
+
+deploy:
+  provider: script
+  script: ./trigger_docker_build.sh
+  on:
+    tags: true
 
 notifications:
   webhooks:
