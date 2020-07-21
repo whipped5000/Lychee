@@ -6,6 +6,7 @@ use App\Console\Commands\Utilities\Colorize;
 use App\ModelFunctions\PhotoFunctions;
 use App\Photo;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection as BaseCollection;
 use Storage;
 
 class Ghostbuster extends Command
@@ -52,6 +53,36 @@ class Ghostbuster extends Command
 	}
 
 	/**
+	 * We could use a simpler loop over stack and check if every element is in needle,
+	 * this provides use with a better complexity (hopefully).
+	 *
+	 * This returns a list of the files that do not have a photo associated.
+	 * We filter from a file list all the urls that are found in photos
+	 */
+	private function diff(BaseCollection $photos, BaseCollection $urls): BaseCollection
+	{
+		$acc = new BaseCollection();
+		while (true) {
+			if ($urls->count() == 0) {
+				return $acc;
+			}
+
+			if ($photos->count() == 0) {
+				return $acc->concat($urls);
+			}
+
+			$photo = $photos->pop();
+			$idx = $urls->search($photo->url);
+
+			if ($idx != false) {
+				$urls->forget($idx);
+			} else {
+				$acc->push($photo->url);
+			}
+		}
+	}
+
+	/**
 	 * Execute the console command.
 	 *
 	 * @return mixed
@@ -73,13 +104,17 @@ class Ghostbuster extends Command
 
 		$path = Storage::path('big');
 		$files = array_slice(scandir($path), 2);
+		$photos = Photo::all();
+		// we need to filter duplicates here.
+
+		$files = new BaseCollection($files);
+		$i = $files->search('index.html');
+		$files->forget($i);
+
+		$not_found = $this->diff($photos, $files);
 		$total = 0;
 
 		foreach ($files as $url) {
-			if ($url == 'index.html') {
-				continue;
-			}
-
 			$isDeadSymlink = is_link($path . '/' . $url) && !file_exists(readlink($path . '/' . $url));
 			$photos = Photo::where('url', '=', $url)->get();
 
