@@ -14,7 +14,7 @@ class Sync extends Command
 	 *
 	 * @var string
 	 */
-	protected $signature = 'lychee:sync {dir : directory to sync} {--album_id=0 : Album ID to import to} {--owner_id=0 : Owner ID of imported photos} {--resync_metadata : Re-sync metadata of existing files}';
+	protected $signature = 'lychee:sync {dir : directory to sync} {--album_id=0 : Album ID to import to} {--owner_id=0 : Owner ID of imported photos} {--resync_metadata : Re-sync metadata of existing files} {--skip_duplicates=true : Skip Duplicate Files}';
 
 	/**
 	 * The console command description.
@@ -46,7 +46,11 @@ class Sync extends Command
 		$album_id = (int) $this->option('album_id'); // in case no ID provided -> import to root folder
 		$resync_metadata = $this->option('resync_metadata');
 		$delete_imported = false; // we want to sync -> do not delete imported files
-		$force_skip_duplicates = true;
+		if( $this->option('skip_duplicates') == "false" ) { // When using sync to do an initial import, we may want to have duplicates
+			$force_skip_duplicates = false;
+		} else {
+			$force_skip_duplicates = true;
+		}
 		$import_controller = resolve(ImportController::class);
 
 		// Enable CLI formatting of status
